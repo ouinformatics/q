@@ -1,0 +1,19 @@
+Task Q
+------
+
+Web API for submitting celery tasks to a task queue.
+
+Dependencies:
+- CherryPy
+- amqp
+- anyjson
+- billiard
+- celery
+- kombu
+- pymongo
+- python-dateutil
+- python-memcached
+- simplejson
+- wsgiref
+
+
