@@ -36,10 +36,10 @@ if check_memcache():
 else:
     memcache = None
 
-def update_tasks(timeout=600, user="guest"):
+def update_tasks(timeout=6000, user="guest"):
     """ 
     Get list of registered tasks from celery, store in memcache for 
-        `timeout` period if set (default to 600s) if available 
+        `timeout` period if set (default to 6000s) if available 
     """
     i = inspect()
     if memcache:
@@ -192,7 +192,7 @@ class Root():
 
     @cherrypy.expose
     def status(self,task_id=None):
-        """ GET """
+        """ Return a task's status """
         col = self.db[self.database][self.tomb_collection]
         user = check_user(cherrypy.request.login)
         if task_id:
@@ -203,14 +203,18 @@ class Root():
             return json.dumps({"error": "please specify a valid task_id"})
  
     @cherrypy.expose
-    def result(self,task_id=None):
-        """ GET """
+    def result(self,task_id=None, redirect=True):
+        """ Get the result of a task  """
         col = self.db[self.database][self.tomb_collection]
         user = check_user(cherrypy.request.login)
         if task_id:
             result = [ item for item in col.find({'_id': task_id}) ]
             cherrypy.response.headers['Content-Type'] = "application/json"
-            return json.dumps({"result": pickle.loads(result[0]['result'])}, default=handler, indent=1)
+            result = pickle.loads(result[0]['result'])
+            if result[0:7] == "http://":
+                raise cherrypy.HTTPRedirect(result)
+            else:
+                return json.dumps({"result": result}, default=handler, indent=1)
 
     @cherrypy.expose
     def reset(self):
