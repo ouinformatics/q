@@ -1,4 +1,5 @@
 #from pymongo import Connection 
+import config
 import cherrypy
 from json_handler import handler
 import simplejson as json
@@ -20,7 +21,7 @@ class jsonify( object ):
         j = json.dumps( results )
         return j
 
-def check_memcache(host="127.0.0.1", port=11211):
+def check_memcache(host=config.MEMCACHE_HOST, port=config.MEMCACHE_PORT):
     """ Check if memcache is running on server """
     import socket
     s = socket.socket()
@@ -42,7 +43,7 @@ def update_tasks(timeout=600, user="guest"):
     """
     i = inspect()
     if memcache:
-        mc = memcache.Client(['127.0.0.1:11211'])
+        mc = memcache.Client(['%s:%s'% (config.MEMCACHE_HOST, config.MEMCACHE_PORT)])
         tasks = "REGISTERED_TASKS_%s" % user
         queues = "AVAILABLE_QUEUES_%s" % user
         REGISTERED_TASKS = mc.get(tasks)
@@ -78,7 +79,7 @@ def reset_tasks(user):
         when tasks are being frequently reloaded.
     """
     if memcache:
-        mc = memcache.Client(['127.0.0.1:11211'])
+        mc = memcache.Client(['%s:%s'% (config.MEMCACHE_HOST, config.MEMCACHE_PORT)])
         tasks = "REGISTERED_TASKS_%s" % user
         queues = "AVAILABLE_QUEUES_%s" % user
         mc.delete(tasks)
@@ -97,11 +98,12 @@ def check_user(login):
 def check_auth(user_id):
     pass 
 class Root():
-    def __init__(self,mongoHost='localhost',port=27017,database='cybercom_queue',log_collection='task_log',tomb_collection='cybercom_queue_meta'):
-        self.db = Connection(mongoHost,port)#[database]
+    def __init__(self,mongoHost=config.MONGO_HOST,port=config.MONGO_PORT,database=config.MONGO_DB,log_collection=config.MONGO_LOG_COLLECTION,tomb_collection=config.MONGO_TOMBSTONE_COLLECTION):
+        self.db = Connection(mongoHost,port)
         self.database = database
-        self.collection = log_collection #'ows_task_log'
-        self.tomb_collection= tomb_collection #'cybercom_queue_meta'#'okwater'#'cybercom_queue_meta'
+        self.collection = log_collection
+        self.tomb_collection= tomb_collection
+
     def index(self):
         """ Index method for queue run """ 
         pass
