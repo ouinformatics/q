@@ -1,8 +1,11 @@
 #from pymongo import Connection 
 import config
+import celeryconfig
 import cherrypy
 from json_handler import handler
 import simplejson as json
+from celery import Celery
+celery = Celery().config_from_object(celeryconfig)
 from celery.task.control import inspect
 from celery.result import AsyncResult
 from celery.execute import send_task
